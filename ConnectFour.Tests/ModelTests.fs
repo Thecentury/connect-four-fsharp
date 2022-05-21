@@ -78,3 +78,53 @@ let ``Calculates diagonals of a 2x2 board`` () =
         [X; B]
         [B]
     ] @>
+
+(******************************************************************************)
+
+[<Fact>]
+let ``No winner`` () =
+    let board = [
+        [X; B]
+        [O; B]
+    ]
+    let cfg = Config.ofRowsColumns 2 2 |> Config.withWin 2
+
+    let winner = Reader.run cfg (winner board)
+
+    test <@ winner = None @>
+
+[<Fact>]
+let ``Winner in a row`` () =
+    let board = [
+        [X; X]
+        [O; B]
+    ]
+    let cfg = Config.ofRowsColumns 2 2 |> Config.withWin 2
+
+    let winner = Reader.run cfg (winner board)
+
+    test <@ winner = Some X @>
+    
+[<Fact>]
+let ``Winner in a column`` () =
+    let board = [
+        [X; B]
+        [X; O]
+    ]
+    let cfg = Config.ofRowsColumns 2 2 |> Config.withWin 2
+
+    let winner = Reader.run cfg (winner board)
+
+    test <@ winner = Some X @>
+
+[<Fact>]
+let ``Winner in a diagonal`` () =
+    let board = [
+        [X; B]
+        [O; X]
+    ]
+    let cfg = Config.ofRowsColumns 2 2 |> Config.withWin 2
+
+    let winner = Reader.run cfg (winner board)
+
+    test <@ winner = Some X @>

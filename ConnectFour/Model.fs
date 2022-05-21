@@ -1,7 +1,5 @@
 ﻿module ConnectFour.Model
 
-// todo mikbri use reader monad to provide these constants?
-
 (******************************************************************************)
 
 type Config = {
@@ -24,6 +22,9 @@ module Config =
         { defaultConfig with
             Rows = rows
             Columns = columns }
+        
+    let withWin win cfg =
+        { cfg with Win = win }
 
 (******************************************************************************)
 
@@ -90,6 +91,7 @@ let winner (board : Board) = reader {
     let! diagonals = diagonals board
     return
         rows board @ columns board @ diagonals
+        // todo think of better solution
         |> List.choose (fun row -> Reader.run cfg (winnerInRow row))
         |> List.tryHead
 }
