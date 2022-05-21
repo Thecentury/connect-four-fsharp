@@ -86,13 +86,14 @@ let winnerInRow (row : Row) = reader {
 }
 
 let winner (board : Board) = reader {
-    // todo think of better solution
-    let! cfg = config
     let! diagonals = diagonals board
-    return
+    let! winners =
         rows board @ columns board @ diagonals
-        // todo think of better solution
-        |> List.choose (fun row -> Reader.run cfg (winnerInRow row))
+        |> List.map winnerInRow
+        |> Reader.join
+        
+    return winners
+        |> List.choose id
         |> List.tryHead
 }
 

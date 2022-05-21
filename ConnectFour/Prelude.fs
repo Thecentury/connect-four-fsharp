@@ -39,6 +39,12 @@ module Reader =
             run env (f x)
 
         Reader newAction
+        
+    let join readers =
+        let newAction env =
+            List.map (run env) readers
+
+        Reader newAction
 
 type ReaderBuilder() =
     member _.Return(x) = Reader(fun _ -> x)
