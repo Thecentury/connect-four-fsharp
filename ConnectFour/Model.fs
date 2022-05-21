@@ -2,14 +2,36 @@
 
 // todo mikbri use reader monad to provide these constants?
 
-let rowsNum = 6
-let colsNum = 7
-let win = 5
-let depth = 6
+(******************************************************************************)
+
+type Config = {
+    Rows : int
+    Columns : int
+    Win : int
+    Depth : int
+}
+
+let defaultConfig = {
+    Rows = 6
+    Columns = 7
+    Win = 5
+    Depth = 6
+}
+
+module Config =
+    
+    let ofRowsColumns rows columns =
+        { defaultConfig with
+            Rows = rows
+            Columns = columns }
+
+(******************************************************************************)
+
+let config : Reader<Config, Config> = Reader id
 
 type Player =
     | O
-    | Blank
+    | B
     | X
     
 type Row = List<Player>
@@ -20,34 +42,56 @@ let rows board = board
 
 let columns (board : Board) = List.transpose board
 
-let diagonals (board : Board) =
+/// First /, then \
+let diagonals (board : Board) = reader {
     let shiftedRows (shift : int) (rowMultiplier : int) =
-        board
-        |> List.mapi(fun rowIndex row ->
-            row |> List.safeSkip (shift + rowIndex * rowMultiplier))
-        |> List.filter (not << List.isEmpty)
+        let result = 
+            board
+            |> List.mapi(fun rowIndex row ->
+                let t =
+                    row
+                    |> List.safeSkip (shift + rowIndex * rowMultiplier)
+                    |> List.truncate 1
+                t)
+            |> List.filter (not << List.isEmpty)
+            |> List.transpose
+        result
 
-    [
-        for multiplier in [1; -1] do
-            for shift in [0 .. colsNum + rowsNum - 1] do
-                shiftedRows shift multiplier |> List.transpose
-    ]
-    |> List.concat
+    let! cfg = config
+    return 
+        [
+            for shift in [0 .. cfg.Columns + cfg.Rows - 2] do
+                shiftedRows shift -1
+            for shift in [-(cfg.Rows - 1) .. cfg.Columns - 1] do
+                shiftedRows shift 1
+        ]
+        |> List.filter (not << List.isEmpty)
+        |> List.concat
+}
     
-let winnerInRow (row : Row) =
+let winnerInRow (row : Row) = reader {
+    let! cfg = config
+    let toWin = cfg.Win
+
     let rec impl (prev, count) cells =
         match cells with
         | [] -> None
-        | Blank :: rest -> impl (Blank, 1) rest
-        | player :: _ when player = prev && count + 1 >= win -> Some player
+        | B :: rest -> impl (B, 1) rest
+        | player :: _ when player = prev && count + 1 >= toWin -> Some player
         | player :: rest when player = prev -> impl (player, count + 1) rest
         | player :: rest -> impl (player, 1) rest
     
-    impl (Blank, 0) row
+    return impl (B, 0) row
+}
 
-let winner (board : Board) =
-    rows board @ columns board @ diagonals board
-    |> List.choose winnerInRow
-    |> List.tryHead
+let winner (board : Board) = reader {
+    // todo think of better solution
+    let! cfg = config
+    let! diagonals = diagonals board
+    return
+        rows board @ columns board @ diagonals
+        |> List.choose (fun row -> Reader.run cfg (winnerInRow row))
+        |> List.tryHead
+}
 
 let nextMoves (player : Player) (board : Board) = []
