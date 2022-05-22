@@ -114,5 +114,11 @@ let tryAdd (player : Player) (column : Column) =
         Some result
     else
         None
-        
-let nextMoves (player : Player) (board : Board) = []
+
+let nextMoves (player : Player) (board : Board) : List<Board> =
+    board
+    |> columns
+    |> Zipper.fromList
+    |> Zipper.selfAndRights
+    |> List.choose (fun z -> tryAdd player z.Focus |> Option.map (fun column -> Zipper.withFocus column z))
+    |> List.map (Zipper.toList >> columns)

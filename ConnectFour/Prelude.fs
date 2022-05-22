@@ -53,3 +53,61 @@ type ReaderBuilder() =
     member _.ReturnFrom x = x
 
 let reader = ReaderBuilder()
+
+(******************************************************************************)
+
+type Zipper<'a> = {
+    Left : List<'a>
+    Focus : 'a
+    Right : List<'a>
+}
+
+module Zipper =
+
+    let private create left focus right =
+        {
+            Left = left
+            Focus = focus
+            Right = right
+        }
+        
+    let fromList list = {
+        Left = []
+        Focus = List.head list
+        Right = List.tail list
+    }
+    
+    let withFocus f zipper =
+        { zipper with Focus = f }
+    
+    let tryMoveLeft zipper =
+        match zipper.Left with
+        | [] -> None
+        | head :: tail ->
+            {
+                Left = tail
+                Focus = head
+                Right = zipper.Focus :: zipper.Right
+            } |> Some
+            
+    let tryMoveRight zipper =
+        match zipper.Right with
+        | [] -> None
+        | head :: tail ->
+            {
+                Left = zipper.Focus :: zipper.Left
+                Focus = head
+                Right = tail
+            } |> Some
+            
+    let selfAndRights zipper =
+        let gen = function
+        | None -> None
+        | Some z -> Some (z, tryMoveRight z)
+        List.unfold gen (Some zipper)
+
+    let map (f : 'a -> 'b) (zipper : Zipper<'a>) : Zipper<'b> =
+        create (zipper.Left |> List.map f) (f zipper.Focus) (zipper.Right |> List.map f)
+
+    let toList (z : Zipper<'a>) : List<'a> =
+        (List.rev z.Left) @ [z.Focus] @ z.Right

@@ -141,3 +141,85 @@ let ``TryAdd to an not empty column`` () =
     let column' = tryAdd X [B; O]
     test <@ column' = Some [X; O] @>
     
+(******************************************************************************)
+
+[<Fact>]
+let ``nextMoves of an empty 1x1 board`` () =
+    let board = [[B]]
+    let nextMoves = nextMoves Player.O board
+    
+    test <@ nextMoves = [[[O]]] @>
+    
+[<Fact>]
+let ``nextMoves of an empty 2x1 board`` () =
+    let board = [[B; B]]
+    let nextMoves = nextMoves Player.O board
+    
+    test <@ nextMoves = [
+        [[O; B]]
+        [[B; O]]
+    ] @>
+
+[<Fact>]
+let ``nextMoves of an empty 2x2 board`` () =
+    let board = [
+        [B; B]
+        [B; B]
+    ]
+    let nextMoves = nextMoves Player.O board
+    
+    test <@ nextMoves = [
+        [
+            [B; B]
+            [O; B]
+        ]
+        [
+            [B; B]
+            [B; O]
+        ]
+    ] @>
+
+[<Fact>]
+let ``nextMoves of a non-empty 2x2 board`` () =
+    let board = [
+        [B; B]
+        [X; B]
+    ]
+    let nextMoves = nextMoves Player.O board
+    
+    test <@ nextMoves = [
+        [
+            [O; B]
+            [X; B]
+        ]
+        [
+            [B; B]
+            [X; O]
+        ]
+    ] @>
+
+[<Fact>]
+let ``nextMoves of an 2x2 board with one full column`` () =
+    let board = [
+        [O; B]
+        [X; B]
+    ]
+    let nextMoves = nextMoves Player.O board
+    
+    test <@ nextMoves = [
+        [
+            [O; B]
+            [X; O]
+        ]
+    ] @>
+
+[<Fact>]
+let ``nextMoves of a full 2x2 board`` () =
+    let board = [
+        [O; X]
+        [X; O]
+    ]
+    let nextMoves = nextMoves Player.O board
+    
+    test <@ nextMoves = [] @>
+
