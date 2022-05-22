@@ -128,3 +128,16 @@ let ``Winner in a diagonal`` () =
     let winner = Reader.run cfg (winner board)
 
     test <@ winner = Some X @>
+    
+(******************************************************************************)
+
+[<Fact>]
+let ``TryAdd to a full column`` () =
+    let column' = tryAdd O [X; O]
+    test <@ column' = None @>
+    
+[<Fact>]
+let ``TryAdd to an not empty column`` () =
+    let column' = tryAdd X [B; O]
+    test <@ column' = Some [X; O] @>
+    

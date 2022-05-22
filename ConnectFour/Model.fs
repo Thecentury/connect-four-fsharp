@@ -37,6 +37,8 @@ type Player =
     
 type Row = List<Player>
 
+type Column = List<Player>
+
 type Board = List<Row>
 
 let rows board = board
@@ -97,4 +99,20 @@ let winner (board : Board) = reader {
         |> List.tryHead
 }
 
+let isFullColumn (column : Column) =
+    column.Head <> B
+
+let tryAdd (player : Player) (column : Column) =
+    let go current (added, soFar) =
+        match current, added with
+        | _, true -> (true, current :: soFar)
+        | B, _ -> (true, player :: soFar)
+        | current, _ -> (false, current :: soFar)
+            
+    let added, result = List.foldBack go column (false, [])
+    if added then
+        Some result
+    else
+        None
+        
 let nextMoves (player : Player) (board : Board) = []
