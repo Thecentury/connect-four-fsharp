@@ -5,7 +5,7 @@ open ConnectFour.Model
 open Xunit
 open Swensen.Unquote
 
-let board : Board = [
+let board : Board = Board [
     [B; B; B; B; B; B; B]
     [B; B; B; B; B; B; B]
     [B; B; B; B; B; B; B]
@@ -16,7 +16,7 @@ let board : Board = [
 
 [<Fact>]
 let ``Calculates diagonals of a 1x1 board`` () =
-    let board = [[X]]
+    let board = Board [[X]]
     let cfg = Config.ofRowsColumns 1 1
     let diagonals = Reader.run cfg (diagonals board)
     
@@ -24,7 +24,7 @@ let ``Calculates diagonals of a 1x1 board`` () =
 
 [<Fact>]
 let ``Calculates diagonals of a 2x1 board`` () =
-    let board = [
+    let board = Board [
         [X]
         [O]
     ]
@@ -35,7 +35,7 @@ let ``Calculates diagonals of a 2x1 board`` () =
 
 [<Fact>]
 let ``Calculates diagonals of a 1x2 board`` () =
-    let board = [[X; O]]
+    let board = Board [[X; O]]
     let cfg = Config.ofRowsColumns 1 2
     let diagonals = Reader.run cfg (diagonals board)
     
@@ -43,7 +43,7 @@ let ``Calculates diagonals of a 1x2 board`` () =
 
 [<Fact>]
 let ``Calculates diagonals of a 1x3 board`` () =
-    let board = [[X; O; X]]
+    let board = Board [[X; O; X]]
     let cfg = Config.ofRowsColumns 1 3
     let diagonals = Reader.run cfg (diagonals board)
     
@@ -51,7 +51,7 @@ let ``Calculates diagonals of a 1x3 board`` () =
 
 [<Fact>]
 let ``Calculates diagonals of a 3x1 board`` () =
-    let board = [
+    let board = Board [
         [X]
         [O]
         [X]
@@ -63,7 +63,7 @@ let ``Calculates diagonals of a 3x1 board`` () =
 
 [<Fact>]
 let ``Calculates diagonals of a 2x2 board`` () =
-    let board = [
+    let board = Board [
         [X; B]
         [O; B]
     ]
@@ -83,7 +83,7 @@ let ``Calculates diagonals of a 2x2 board`` () =
 
 [<Fact>]
 let ``No winner`` () =
-    let board = [
+    let board = Board [
         [X; B]
         [O; B]
     ]
@@ -95,7 +95,7 @@ let ``No winner`` () =
 
 [<Fact>]
 let ``Winner in a row`` () =
-    let board = [
+    let board = Board [
         [X; X]
         [O; B]
     ]
@@ -107,7 +107,7 @@ let ``Winner in a row`` () =
     
 [<Fact>]
 let ``Winner in a column`` () =
-    let board = [
+    let board = Board [
         [X; B]
         [X; O]
     ]
@@ -119,7 +119,7 @@ let ``Winner in a column`` () =
 
 [<Fact>]
 let ``Winner in a diagonal`` () =
-    let board = [
+    let board = Board [
         [X; B]
         [O; X]
     ]
@@ -145,35 +145,35 @@ let ``TryAdd to an not empty column`` () =
 
 [<Fact>]
 let ``nextMoves of an empty 1x1 board`` () =
-    let board = [[B]]
+    let board = Board [[B]]
     let nextMoves = nextMoves Player.O board
     
-    test <@ nextMoves = [[[O]]] @>
+    test <@ nextMoves = [Board [[O]]] @>
     
 [<Fact>]
 let ``nextMoves of an empty 2x1 board`` () =
-    let board = [[B; B]]
+    let board = Board [[B; B]]
     let nextMoves = nextMoves Player.O board
     
     test <@ nextMoves = [
-        [[O; B]]
-        [[B; O]]
+        Board [[O; B]]
+        Board [[B; O]]
     ] @>
 
 [<Fact>]
 let ``nextMoves of an empty 2x2 board`` () =
-    let board = [
+    let board = Board [
         [B; B]
         [B; B]
     ]
     let nextMoves = nextMoves Player.O board
     
     test <@ nextMoves = [
-        [
+        Board [
             [B; B]
             [O; B]
         ]
-        [
+        Board [
             [B; B]
             [B; O]
         ]
@@ -181,18 +181,18 @@ let ``nextMoves of an empty 2x2 board`` () =
 
 [<Fact>]
 let ``nextMoves of a non-empty 2x2 board`` () =
-    let board = [
+    let board = Board [
         [B; B]
         [X; B]
     ]
     let nextMoves = nextMoves Player.O board
     
     test <@ nextMoves = [
-        [
+        Board [
             [O; B]
             [X; B]
         ]
-        [
+        Board [
             [B; B]
             [X; O]
         ]
@@ -200,14 +200,14 @@ let ``nextMoves of a non-empty 2x2 board`` () =
 
 [<Fact>]
 let ``nextMoves of an 2x2 board with one full column`` () =
-    let board = [
+    let board = Board [
         [O; B]
         [X; B]
     ]
     let nextMoves = nextMoves Player.O board
     
     test <@ nextMoves = [
-        [
+        Board [
             [O; B]
             [X; O]
         ]
@@ -215,7 +215,7 @@ let ``nextMoves of an 2x2 board with one full column`` () =
 
 [<Fact>]
 let ``nextMoves of a full 2x2 board`` () =
-    let board = [
+    let board = Board [
         [O; X]
         [X; O]
     ]
@@ -223,3 +223,16 @@ let ``nextMoves of a full 2x2 board`` () =
     
     test <@ nextMoves = [] @>
 
+(******************************************************************************)
+
+[<Fact>]
+let buildGameTree () =
+    let board = Board [
+        [B; B; X]
+        [B; X; O]
+        [O; O; X]
+    ]
+    let cfg = Config.ofRowsColumns 3 3 |> Config.withWin 3
+    let gameTree = Reader.run cfg (buildGameTree Player.X board)
+    ()
+    

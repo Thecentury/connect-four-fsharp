@@ -1,5 +1,8 @@
 ﻿module ConnectFour.Model
 
+open System
+open System.Diagnostics
+
 (******************************************************************************)
 
 type Config = {
@@ -34,19 +37,39 @@ type Player =
     | O
     | B
     | X
+
+module Player =
+    
+    let displayString = function
+        | O -> "o"
+        | B -> " "
+        | X -> "x"
+    
+let nextPlayer = function
+    | O -> X
+    | B -> failwith "Blank cell is not a player"
+    | X -> O
     
 type Row = List<Player>
 
 type Column = List<Player>
 
-type Board = List<Row>
+[<Struct>]
+[<DebuggerDisplay("{ToString(),nq}")>]
+type Board = Board of List<Row> with
+    override this.ToString () =
+        let (Board rows) = this
+        let rowsStrings =
+            rows
+            |> List.map (fun row -> String.Join("", row |> List.map Player.displayString))
+        String.Join(Environment.NewLine, rowsStrings)
 
-let rows board = board
+let rows (Board board) = board
 
-let columns (board : Board) = List.transpose board
+let columns (Board board) = List.transpose board
 
 /// First /, then \
-let diagonals (board : Board) = reader {
+let diagonals (Board board) = reader {
     let shiftedRows (shift : int) (rowMultiplier : int) =
         let result = 
             board
@@ -121,4 +144,39 @@ let nextMoves (player : Player) (board : Board) : List<Board> =
     |> Zipper.fromList
     |> Zipper.selfAndRights
     |> List.choose (fun z -> tryAdd player z.Focus |> Option.map (fun column -> Zipper.withFocus column z))
-    |> List.map (Zipper.toList >> columns)
+    |> List.map (Zipper.toList >> Board >> columns >> Board)
+    
+type GameTreeNode = {
+    PlayerToPlay : Player
+    Board : Board
+    Depth : int
+}
+    
+let buildGameTree (playerToPlay : Player) (board : Board) = reader {
+    let! cfg = config
+    let rec impl currentDepth (playerToPlay : Player) (board : Board) =
+        if currentDepth >= cfg.Depth then
+            let tree = {
+                Value = {
+                    PlayerToPlay = playerToPlay
+                    Depth = currentDepth
+                    Board = board
+                }
+                Children = []
+            }
+            tree
+        else
+            let nextMoves = nextMoves playerToPlay board
+            let tree = {
+                Value = {
+                    PlayerToPlay = playerToPlay
+                    Depth = currentDepth
+                    Board = board
+                }
+                Children =
+                    nextMoves
+                    |> List.map (impl (currentDepth + 1) (nextPlayer playerToPlay))
+            }
+            tree
+    return impl 0 playerToPlay board
+}

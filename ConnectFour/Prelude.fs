@@ -111,3 +111,10 @@ module Zipper =
 
     let toList (z : Zipper<'a>) : List<'a> =
         (List.rev z.Left) @ [z.Focus] @ z.Right
+        
+(******************************************************************************)
+
+type Tree<'a> = {
+    Value : 'a
+    Children : List<Tree<'a>>
+}
