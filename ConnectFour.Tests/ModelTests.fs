@@ -133,12 +133,12 @@ let ``Winner in a diagonal`` () =
 
 [<Fact>]
 let ``TryAdd to a full column`` () =
-    let column' = tryAdd O [X; O]
+    let column' = tryAddToColumn O [X; O]
     test <@ column' = None @>
     
 [<Fact>]
 let ``TryAdd to an not empty column`` () =
-    let column' = tryAdd X [B; O]
+    let column' = tryAddToColumn X [B; O]
     test <@ column' = Some [X; O] @>
     
 (******************************************************************************)
@@ -226,7 +226,7 @@ let ``nextMoves of a full 2x2 board`` () =
 (******************************************************************************)
 
 [<Fact>]
-let buildGameTree () =
+let ``buildGameTree for a board from video`` () =
     let board = Board [
         [B; B; X]
         [B; X; O]
@@ -237,3 +237,14 @@ let buildGameTree () =
     let _gameTreeAsString = $"%A{gameTree}"
     test <@ gameTree.Value.Winner = X @>
     
+[<Fact>]
+let ``buildGameTree for after the first move`` () =
+    let board = Board [
+        [B; B; B]
+        [B; B; B]
+        [O; B; B]
+    ]
+    let cfg = Config.ofRowsColumns 3 3 |> Config.withWin 3 |> Config.withDepth 7
+    let gameTree = Reader.run cfg (buildGameTree Player.O board)
+    let _gameTreeAsString = $"%A{gameTree}"
+    ()

@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="Prelude.fs" />
     <Compile Include="Model.fs" />
+    <Compile Include="GameLoop.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

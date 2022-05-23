@@ -1,6 +1,8 @@
 ﻿[<AutoOpen>]
 module ConnectFour.Prelude
 
+open System
+
 module List =
 
     let safeSkip count list =
@@ -118,3 +120,12 @@ type Tree<'a> = {
     Value : 'a
     Children : List<Tree<'a>>
 }
+
+(******************************************************************************)
+
+let (|Int|_|) (s : string) =
+    let success, value = Int32.TryParse s
+    if success then
+        Some value
+    else
+        None
