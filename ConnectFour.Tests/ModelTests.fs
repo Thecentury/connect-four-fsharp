@@ -233,6 +233,7 @@ let buildGameTree () =
         [O; O; X]
     ]
     let cfg = Config.ofRowsColumns 3 3 |> Config.withWin 3
-    let gameTree = Reader.run cfg (buildGameTree Player.X board)
-    ()
+    let gameTree = Reader.run cfg (buildGameTree Player.O board)
+    let _gameTreeAsString = $"%A{gameTree}"
+    test <@ gameTree.Value.Winner = X @>
     

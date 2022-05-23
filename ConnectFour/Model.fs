@@ -44,6 +44,13 @@ module Player =
         | O -> "o"
         | B -> " "
         | X -> "x"
+        
+    let minimax (player : Player) (childrenWinners : List<Player>) =
+        match player, childrenWinners with
+        | B, _ -> B
+        | _, [] -> B
+        | O, winners -> List.min winners
+        | X, winners -> List.max winners
     
 let nextPlayer = function
     | O -> X
@@ -148,35 +155,52 @@ let nextMoves (player : Player) (board : Board) : List<Board> =
     
 type GameTreeNode = {
     PlayerToPlay : Player
+    Winner : Player
     Board : Board
     Depth : int
 }
     
 let buildGameTree (playerToPlay : Player) (board : Board) = reader {
     let! cfg = config
-    let rec impl currentDepth (playerToPlay : Player) (board : Board) =
+    let rec impl currentDepth (playerToPlay : Player) (board : Board) = reader {
         if currentDepth >= cfg.Depth then
             let tree = {
                 Value = {
                     PlayerToPlay = playerToPlay
+                    Winner = B
                     Depth = currentDepth
                     Board = board
                 }
                 Children = []
             }
-            tree
+            return tree
         else
-            let nextMoves = nextMoves playerToPlay board
+            let nextPlayer = nextPlayer playerToPlay
+            let! winner = winner board
+            let! winner, children =
+                match winner with
+                | Some w -> reader.Return (w, [])
+                | None -> reader {
+                    let! children =
+                        nextMoves nextPlayer board
+                        |> List.map (impl (currentDepth + 1) nextPlayer)
+                        |> Reader.join
+                    let childrenWinners =
+                        children
+                        |> List.map (fun child -> child.Value.Winner)
+                    let nodeWinner = Player.minimax playerToPlay childrenWinners
+                    return (nodeWinner, children)
+                }
             let tree = {
                 Value = {
                     PlayerToPlay = playerToPlay
+                    Winner = winner
                     Depth = currentDepth
                     Board = board
                 }
-                Children =
-                    nextMoves
-                    |> List.map (impl (currentDepth + 1) (nextPlayer playerToPlay))
+                Children = children
             }
-            tree
-    return impl 0 playerToPlay board
+            return tree
+        }
+    return! impl 0 playerToPlay board
 }
