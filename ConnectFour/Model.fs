@@ -13,9 +13,9 @@ type Config = {
 }
 
 let defaultConfig = {
-    Rows = 6
-    Columns = 7
-    Win = 5
+    Rows = 3
+    Columns = 3
+    Win = 3
     Depth = 6
 }
 
