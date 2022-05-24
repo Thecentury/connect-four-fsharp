@@ -169,7 +169,7 @@ let tryAddToBoard (player : Player) (columnIndex : int) (board : Board) : Option
             let column' = tryAddToColumn player column
             match column' with
             | None -> None
-            | Some column' -> Some ((List.rev soFar) @ [column'] @ rest)
+            | Some column' -> Some ^ (List.rev soFar) @ [column'] @ rest
         | currentColumnIndex, column :: rest ->
             go (currentColumnIndex - 1) (column :: soFar) rest
     

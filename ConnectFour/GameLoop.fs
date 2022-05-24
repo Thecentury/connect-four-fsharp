@@ -30,9 +30,7 @@ let drawBoard (board : Board) = reader {
 
     rows board
     |> List.iter (fun row ->
-        let rowString =
-            String.Join("", row |> List.map Player.displayString)
-
+        let rowString = String.Join("", row |> List.map Player.displayString)
         printfn $"%s{rowString}")
 
     [ 1 .. cfg.Columns ]
@@ -91,7 +89,6 @@ let loop (player : Player) (board : Board) =
             match player with
             | AI ->
                 let! board' = nextMove player board
-
                 match board' with
                 | Some (Definite board') ->
                     printfn "I'll win!"
@@ -104,9 +101,7 @@ let loop (player : Player) (board : Board) =
                     return ()
             | Human ->
                 let! column = readPlayerInput player
-
                 let board' = tryAddToBoard player column board
-
                 match board' with
                 | Some board' ->
                     Console.WriteLine ()

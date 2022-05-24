@@ -3,6 +3,8 @@ module ConnectFour.Prelude
 
 open System
 
+let (^) f x = f x
+
 module List =
 
     let safeSkip count list =
@@ -32,7 +34,7 @@ module Reader =
     let ask = Reader id
 
     /// Map a function over a Reader
-    let map f reader = Reader(fun env -> f (run env reader))
+    let map f reader = Reader ^ fun env -> f (run env reader)
 
     /// flatMap a function over a Reader
     let bind f reader =
@@ -49,9 +51,9 @@ module Reader =
         Reader newAction
 
 type ReaderBuilder() =
-    member _.Return(x) = Reader(fun _ -> x)
+    member _.Return(x) = Reader ^ fun _ -> x
     member _.Bind(x, f) = Reader.bind f x
-    member _.Zero() = Reader(fun _ -> ())
+    member _.Zero() = Reader ^ fun _ -> ()
     member _.ReturnFrom x = x
 
 let reader = ReaderBuilder()

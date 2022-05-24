@@ -9,6 +9,8 @@ let cfg = {
     Depth = 10
 }
 
-let initialBoard = mkBoard defaultConfig
+let run cfg =
+    let board = mkBoard cfg
+    Reader.run cfg (loop Player.O board)
 
-Reader.run defaultConfig (loop Player.O initialBoard)
+run defaultConfig
