@@ -233,7 +233,7 @@ let ``buildGameTree for a board from video`` () =
         [O; O; X]
     ]
     let cfg = Config.ofRowsColumns 3 3 |> Config.withWin 3
-    let gameTree = Reader.run cfg (buildGameTree Player.O board)
+    let gameTree = Reader.run cfg ^ buildGameTree Player.O board
     let _gameTreeAsString = $"%A{gameTree}"
     test <@ gameTree.Value.Winner = WinnerInChildren X @>
     
@@ -245,6 +245,27 @@ let ``buildGameTree for after the first move`` () =
         [O; B; B]
     ]
     let cfg = Config.ofRowsColumns 3 3 |> Config.withWin 3 |> Config.withDepth 7
-    let gameTree = Reader.run cfg (buildGameTree Player.O board)
+    let gameTree = Reader.run cfg ^ buildGameTree Player.O board
     let _gameTreeAsString = $"%A{gameTree}"
     ()
+    
+(******************************************************************************)
+
+[<Fact>]
+let ``nextMove when only one move remains`` () =
+    let board = Board [
+        [X; X; B]
+        [O; O; X]
+        [O; X; O]
+    ]
+    let cfg = Config.ofRowsColumns 3 3 |> Config.withWin 3 |> Config.withDepth 7
+    let nextMove = Reader.run cfg ^ nextMove Player.O board
+    match nextMove with
+    | Some (Definite board)
+    | Some (RandomGuess board) -> 
+        test <@ board = Board [
+            [X; X; O]
+            [O; O; X]
+            [O; X; O]
+        ] @>
+    | None -> failwith "nextMove should not be None"
