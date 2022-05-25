@@ -235,7 +235,7 @@ let ``buildGameTree for a board from video`` () =
     let cfg = Config.ofRowsColumns 3 3 |> Config.withWin 3
     let gameTree = Reader.run cfg (buildGameTree Player.O board)
     let _gameTreeAsString = $"%A{gameTree}"
-    test <@ gameTree.Value.Winner = X @>
+    test <@ gameTree.Value.Winner = WinnerInChildren X @>
     
 [<Fact>]
 let ``buildGameTree for after the first move`` () =

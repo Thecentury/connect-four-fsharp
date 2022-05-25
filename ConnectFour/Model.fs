@@ -36,6 +36,7 @@ module Config =
 
 let config : Reader<Config, Config> = Reader id
 
+[<Struct>]
 type Player =
     | O
     | B
@@ -184,9 +185,19 @@ let nextMoves (player : Player) (board : Board) : List<Board> =
     |> List.choose (fun z -> tryAddToColumn player z.Focus |> Option.map (fun column -> Zipper.withFocus column z))
     |> List.map (Zipper.toList >> Board >> columns >> Board)
     
+type Winner =
+    | DepthExhausted
+    | FoundWinner of Player
+    | WinnerInChildren of Player
+    
+let winnerToPlayer = function
+    | DepthExhausted -> B
+    | FoundWinner player -> player
+    | WinnerInChildren player -> player
+    
 type GameTreeNode = {
     PlayerToPlay : Player
-    Winner : Player
+    Winner : Winner
     Board : Board
     Depth : int
 }
@@ -199,7 +210,7 @@ let buildGameTree (playerToPlay : Player) (board : Board) = reader {
             let tree = {
                 Value = {
                     PlayerToPlay = playerToPlay
-                    Winner = B
+                    Winner = DepthExhausted
                     Depth = currentDepth
                     Board = board
                 }
@@ -211,7 +222,7 @@ let buildGameTree (playerToPlay : Player) (board : Board) = reader {
             let! winner = winner board
             let! winner, children =
                 match winner with
-                | Some w -> reader.Return (w, [])
+                | Some w -> reader.Return (FoundWinner w, [])
                 | None -> reader {
                     let! children =
                         nextMoves nextPlayer board
@@ -219,9 +230,9 @@ let buildGameTree (playerToPlay : Player) (board : Board) = reader {
                         |> Reader.join
                     let childrenWinners =
                         children
-                        |> List.map (fun child -> child.Value.Winner)
+                        |> List.map (fun child -> winnerToPlayer child.Value.Winner)
                     let nodeWinner = Player.minimax playerToPlay childrenWinners
-                    return (nodeWinner, children)
+                    return (WinnerInChildren nodeWinner, children)
                 }
             let tree = {
                 Value = {
@@ -254,12 +265,12 @@ let nextMove (currentPlayer : Player) (board : Board) = reader {
 
     let nextMove =
         tree.Children
-        |> List.filter (fun child -> child.Value.Winner = currentPlayer)
+        |> List.filter (fun child -> winnerToPlayer child.Value.Winner = currentPlayer)
         |> List.tryHead
         |> Option.map (fun child -> Definite child.Value.Board)
         |> Option.orElseWith (fun () ->
             tree.Children
-            |> List.filter (fun child -> child.Value.Winner = B)
+            |> List.filter (fun child -> winnerToPlayer child.Value.Winner = B)
             |> List.map (fun child -> child.Value.Board)
             |> randomMove)
         |> Option.orElseWith (fun () ->
