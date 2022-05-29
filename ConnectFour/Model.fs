@@ -205,7 +205,6 @@ type GameTreeNode = {
 let buildGameTree (playerToPlay : Player) (board : Board) = reader {
     let! cfg = config
     let rec impl currentDepth (playerToPlay : Player) (board : Board) = reader {
-        // todo notify on depth exhaustion
         if currentDepth >= cfg.Depth then
             let tree = {
                 Value = {
